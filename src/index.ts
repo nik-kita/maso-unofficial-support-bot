@@ -29,9 +29,13 @@ async function main() {
     });
 
     app.listen(port, async () => {
-        offInterval = setInterval(() => {
-            request(`http${port === 3000 ? '' : 's'}://${domain}:${port}`).catch(console.error);
-        }, 15_000);
+        if (port !== 3000) {
+            offInterval = setInterval(() => {
+                request('https://maso-unofficial-support-bot.herokuapp.com')
+                    .then(console.log)
+                    .catch(console.error);
+            }, 15_000);
+        }
         // Make sure it is `https` not `http`!
         await bot.api.setWebhook(`https://${domain}/${secretPath}`);
     });
