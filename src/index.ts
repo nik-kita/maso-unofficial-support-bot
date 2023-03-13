@@ -1,8 +1,6 @@
 import { config } from 'dotenv';
 import express from 'express';
-import { appendFileSync } from 'fs';
 import { Bot, webhookCallback } from 'grammy';
-import { join } from 'path';
 import { request } from 'undici';
 import { configureBot } from './counfigure-bot';
 
