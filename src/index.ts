@@ -33,7 +33,7 @@ async function main() {
     app.listen(port, async () => {
         if (port !== 3000) {
             offInterval = setInterval(() => {
-                request('https://maso-unofficial-support-bot.herokuapp.com')
+                request(`https://${domain}`)
                     .then(console.log)
                     .catch(console.error);
             }, 15_000);
@@ -48,10 +48,13 @@ main().catch(() => {
 }).finally(() => {
     if (process.env.FIRST) return;
 
-    const _url = `${process.env.DOMAIN}/${process.env.BOT_TOKEN}`;
-    const url = encodeURIComponent(_url);
+    const __url = `${process.env.DOMAIN}/${process.env.BOT_TOKEN}`;
+    const _url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/setWebhook?url=${__url}`;
+    const url = encodeURI(_url);
 
-    request(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/setWebhook?url=${url}`)
+    console.log(url);
+
+    request(url)
         .then(console.log)
         .catch(console.error);
 
