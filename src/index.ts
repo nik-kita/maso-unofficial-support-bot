@@ -3,6 +3,8 @@ import express from 'express';
 import { Bot, webhookCallback } from 'grammy';
 import { request } from 'undici';
 import { configureBot } from './counfigure-bot';
+import { join } from 'path';
+import { appendFileSync } from 'fs';
 
 config();
 
@@ -37,21 +39,21 @@ async function main() {
             }, 15_000);
         }
         // Make sure it is `https` not `http`!
-        await bot.api.setWebhook(`https://${domain}/${secretPath}`);
+        // await bot.api.setWebhook(`https://${domain}/${secretPath}`);
     });
 }
 
 main().catch(() => {
     offInterval && clearInterval(offInterval);
 }).finally(() => {
-    /**
-     * Tried to make optimization like described in documentation
-     */
-    // if (process.env.FIRST) return;
+    if (process.env.FIRST) return;
 
-    // request(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/setWebhook?url=${process.env.DOMAIN}/${process.env.BOT_TOKEN}`)
-    //     .then(console.log)
-    //     .catch(console.error);
+    const _url = `${process.env.DOMAIN}/${process.env.BOT_TOKEN}`;
+    const url = encodeURIComponent(_url);
 
-    // appendFileSync(join(process.cwd(), '.env'), '\nFIRST=true', { encoding: 'utf-8' });
+    request(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/setWebhook?url=${url}`)
+        .then(console.log)
+        .catch(console.error);
+
+    appendFileSync(join(process.cwd(), '.env'), '\nFIRST=true', { encoding: 'utf-8' });
 });
