@@ -35,18 +35,21 @@ async function main() {
             request(`http${port === 3000 ? '' : 's'}://${domain}:${port}`).catch(console.error);
         }, 15_000);
         // Make sure it is `https` not `http`!
-        // await bot.api.setWebhook(`https://${domain}/${secretPath}`);
+        await bot.api.setWebhook(`https://${domain}/${secretPath}`);
     });
 }
 
 main().catch(() => {
     offInterval && clearInterval(offInterval);
 }).finally(() => {
-    if (process.env.FIRST) return;
+    /**
+     * Tried to make optimization like described in documentation
+     */
+    // if (process.env.FIRST) return;
 
-    request(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/setWebhook?url=${process.env.DOMAIN}/${process.env.BOT_TOKEN}`)
-        .then(console.log)
-        .catch(console.error);
+    // request(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/setWebhook?url=${process.env.DOMAIN}/${process.env.BOT_TOKEN}`)
+    //     .then(console.log)
+    //     .catch(console.error);
 
-    appendFileSync(join(process.cwd(), '.env'), '\nFIRST=true', { encoding: 'utf-8' });
+    // appendFileSync(join(process.cwd(), '.env'), '\nFIRST=true', { encoding: 'utf-8' });
 });
