@@ -14,7 +14,7 @@ export function addInlines(bot: Bot) {
         answer_help(ctx);
     });
     bot.callbackQuery(TEXT.allWillBeGood, (ctx: Context) => {
-        fn_remember.insert(ctx);
+        fn_remember.clear(ctx);
 
         answer_allWillBeGood(ctx);
     });
