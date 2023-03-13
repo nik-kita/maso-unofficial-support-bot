@@ -1,38 +1,52 @@
 import { config } from 'dotenv';
-import { Bot, NextFunction } from 'grammy';
-import { addInlines } from './add-inlines.fn';
-import { answer_help } from './answers/help.answer';
-import { pre } from './pre.util';
-import { fn_remember } from './fns/remember.fn';
+import express from 'express';
+import { appendFileSync } from 'fs';
+import { Bot, webhookCallback } from 'grammy';
+import { join } from 'path';
+import { request } from 'undici';
+import { configureBot } from './counfigure-bot';
 
 config();
 
-async function main() {
+let offInterval: ReturnType<typeof setInterval>;
 
+async function main() {
+    const domain = process.env.DOMAIN;
+    const port = +process.env.PORT;
+    const secretPath = process.env.BOT_TOKEN;
+    const app = express();
     const bot = new Bot(process.env.BOT_TOKEN);
 
+    configureBot(bot);
 
-    bot.on('message', async (ctx, next) => {
-
-        await next();
-    }).on('message:text', (ctx, next) => {
-        ctx.reply(...pre(ctx.message.text));
-
-        fn_remember.upsert(ctx);
-
-        next();
+    app.use(express.json());
+    app.use(`/${secretPath}`, webhookCallback(bot, 'express'));
+    app.get('/', (_, res) => {
+        res.json({
+            date: Date.now().toLocaleString(),
+            bot_is_inited: bot.isInited(),
+            port,
+            domain,
+        });
     });
 
-    bot.command(['help', 'start'], answer_help, (ctx, next: NextFunction) => {
-        fn_remember.clear(ctx);
-
-        answer_help(ctx);
+    app.listen(port, async () => {
+        offInterval = setInterval(() => {
+            request(`http${port === 3000 ? '' : 's'}://${domain}:${port}`).catch(console.error);
+        }, 15_000);
+        // Make sure it is `https` not `http`!
+        // await bot.api.setWebhook(`https://${domain}/${secretPath}`);
     });
-
-
-    addInlines(bot);
-
-    await bot.start();
 }
 
-main();
+main().catch(() => {
+    offInterval && clearInterval(offInterval);
+}).finally(() => {
+    if (process.env.FIRST) return;
+
+    request(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/setWebhook?url=${process.env.DOMAIN}/${process.env.BOT_TOKEN}`)
+        .then(console.log)
+        .catch(console.error);
+
+    appendFileSync(join(process.cwd(), '.env'), '\nFIRST=true', { encoding: 'utf-8' });
+});
